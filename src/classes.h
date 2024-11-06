@@ -11,20 +11,25 @@ class Node {
         shared_ptr<Node> parent;
         vector<shared_ptr<Node>> children;
         double value;
-        vector<int> features;
+        vector<unsigned int> features;
 
+        double calculateValue();
     public:
         Node();
-        double calculateValue();
+        Node(vector<unsigned int>);
         void prepareChildren(unsigned int totalF);
 
         //get 
-        unsigned int getFeatureCount() { return features.size(); }
+        const unsigned int getFeatureCount() { return features.size(); }
+        const double getValue() { return value; }
+        const vector<shared_ptr<Node>> getChildren() { return children; }
 };
 
 class Graph {
     private:
         shared_ptr<Node> initNode;
+        shared_ptr<Node> maxNode;
+        vector<shared_ptr<Node>> allNodes;
         unsigned int totalFeatures;
         void ForwardSelection(shared_ptr<Node> n);
     public:
