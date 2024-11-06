@@ -12,6 +12,7 @@ ALL code in this project was written by me and is entirely original
 using namespace std;
 
 int main() {
-    cout << "hello world\n";
+    Graph g(3);
+    g.ForwardSelection();
     return 0;
 }
