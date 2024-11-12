@@ -14,13 +14,13 @@ ALL code in this project was written by me and is entirely original
 using namespace std;
 
 int main() {
-    srand(0);
+    srand(11);
     
     if (true) {
-        Graph g(3);
-        g.ForwardSelection();
+        // true if forward, false if backwards
+        Graph g(3, false);
+        g.Search();
     }
 
-    cout << "g" << endl;
     return 0;
 }

@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-using std::vector, std::shared_ptr;
+using std::vector, std::shared_ptr, std::cout;
 
 class Node {
     private:
@@ -17,12 +17,18 @@ class Node {
     public:
         Node();
         Node(vector<unsigned int>);
-        void prepareChildren(unsigned int totalF);
+        void prepareChildren(const unsigned int totalF, const bool isForward);
 
         //get 
         const unsigned int getFeatureCount() { return features.size(); }
         const double getValue() { return value; }
         const vector<shared_ptr<Node>> getChildren() { return children; }
+        const void printFeatures() {
+            for (unsigned int i = 0; i < features.size()-1; i++) {
+                cout << features.at(i) << ", ";
+            }
+            cout << features.at(features.size()-1);
+        }
 };
 
 class Graph {
@@ -31,12 +37,12 @@ class Graph {
         shared_ptr<Node> maxNode;
         vector<shared_ptr<Node>> allNodes;
         unsigned int totalFeatures;
-        void ForwardSelection(shared_ptr<Node> n);
+        bool isForward;
+        void Search(shared_ptr<Node> n);
     public:
         Graph();
-        Graph(int f);
-        void ForwardSelection();
-        
+        Graph(int f, bool isForward);
+        void Search();
 };
 
 #endif
