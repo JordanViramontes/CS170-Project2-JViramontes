@@ -144,17 +144,25 @@ void Graph::Search(shared_ptr<Node> n) {
     // check to see if new child is better than current max
     if (maxChild->getValue() > maxNode->getValue()) { maxNode = maxChild; }
 
-    // print maxnode
+    // print maxnodes
     cout << "Feature set: {";
     maxChild->printFeatures();
-    cout << "} was best, accuracy: " << maxChild->getValue() << "%\n\n";
+    cout << "} was best, accuracy: " << maxChild->getValue() << "%\n";
+
+    cout << "Feature set: {";
+    maxNode->printFeatures();
+    cout << "} is the current best, accuracy: " << maxNode->getValue() << "%\n\n";
 
     Search(maxChild);
 }
 
 void Graph::Search() {
-    if (isForward) cout << "Using no features: { } and \"random\" evaluation: " << maxNode->getValue() << "%\n\n";
+    if (isForward) {
+        cout << "Searching with Forward Selection.\n\n";
+        cout << "Using no features: { } and \"random\" evaluation: " << maxNode->getValue() << "%\n\n";
+    }
     else {
+        cout << "Searching with Backward Elimination.\n\n";
         cout << "Using all features: {";
         maxNode->printFeatures();
         cout << "} and \"random\" evaluation: " << maxNode->getValue() << "%\n\n";
