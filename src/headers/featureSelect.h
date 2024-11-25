@@ -1,6 +1,7 @@
-#ifndef CLASSES_H
-#define CLASSES_H
+#ifndef FEATURE_SELECT_H
+#define FEATURE_SELECT_H
 
+#include <iostream>
 #include <memory>
 #include <vector>
 
