@@ -3,6 +3,9 @@ DEVELOPED BY JORDAN VIRAMONTES
 
 Disclaimer:
 ALL code in this project was written by me and is entirely original
+
+https://stackoverflow.com/questions/5816658/how-to-have-a-set-of-structs-in-c
+
 */
 
 #include <iostream>
