@@ -63,49 +63,30 @@ void Classifier::train(vector<shared_ptr<Id>> &testSet) {
 
         allKSets.push_back(shared_ptr<KSet>(new KSet(newSet, testSet.at(i))));
     }
-
 }
 
-int Classifier::test(vector<unsigned int> &featuresToTest) {
+void Classifier::test(vector<unsigned int> &featuresToTest) {
+    // iterate over all ksets
     for (unsigned int k = 0; k < allKSets.size(); k++) {
         shared_ptr<KSet> temp = allKSets.at(k);
         vector<Dist> distances;
-        int finalLabel = -1;
 
-        // cout << "loop: " << k << endl; 
+        // loop over train set to fill the distance vector
         for (unsigned int i = 0; i < temp->trainSet.size(); i++) {
             double currentDist = distance(temp->testFeature, temp->trainSet.at(i), featuresToTest);
 
             // if distance returns -1, aka all values were -1
             if (currentDist < 0) { continue; }
-            
+
             distances.push_back(Dist(currentDist, temp->trainSet.at(i)->label, i));
         }
-        // use set for sorting distances
+
+        // set will sort the distance vector into ascending order in O(logn)
         set<Dist> distSet(distances.begin(), distances.end());
-        
-
-        // if the most recent 2 labels are equal, check the third 
-        // for (set<Dist>::iterator i = distSet.begin(); i != distSet.end(); i++){
-        //     cout << "CHECK : " << i->distance << ", l: " << i->label << ", i: " << i->it << endl;
-        // }
-
-        if (distSet.begin()->distance == next(distSet.begin())->distance &&
-            distSet.begin()->label != next(distSet.begin())->label)
-        {
-            finalLabel = next(next(distSet.begin()))->label;
-            // cout << "EQUAL, THUS: " << finalLabel << ", d: " << next(next(distances.begin()))->distance << endl;
-        }
-        else finalLabel = distSet.begin()->label;
 
         // set the Kset's label = nearestneighbor
-        temp->predictedLabel = finalLabel;
-        // cout << "predicted label: " << temp->predictedLabel << 
-        //      ", at: " << nearestNeighbor << ", with: " << nearestNeighborDistance << endl;
+        temp->predictedLabel = distSet.begin()->label;
     }
-    
-
-    return 0;
 }
 
 // Validator
@@ -134,18 +115,16 @@ double Validator::validate() {
     unsigned int total = 0;
     unsigned int correct = 0;
 
+    // iterate over the classified vector
     for (unsigned int i = 0; i < trainedVec.size(); i++, total++) {
-        // cout << total << ", predicted: " << trainedVec.at(i)->predictedLabel << ", real: " << realSet.at(i)->label << endl;
+        // base cases: label/predictedLabel is undefined 
         if (realSet.at(i)->label == -1) continue;
         if (trainedVec.at(i)->predictedLabel == -1) continue;
 
-        cout << "check: tr:" << trainedVec.at(i)->predictedLabel << ", ts: " << realSet.at(i)->label;
-
+        // if our predicted label is correct, increase correct counter
         if (trainedVec.at(i)->predictedLabel == realSet.at(i)->label) {
             correct++;
-            cout << endl;
         }
-        else cout << "WRONG!!, at loop: " << i << endl;
     }
 
     return (correct * 1.0) / (total * 1.0);
@@ -187,11 +166,7 @@ void Validator::parseDataset() {
                 if (number < min && label > 0) min = number;
                 if (number > max) max = number;
 
-                // std::cout << fixed;  
-                // cout << tempStr << " -> " << number
-                //     << ", feature: " <<  feature << endl;
-
-                // if this is the first feature, set label = feature option, else add to features
+                // if label is undefined, set label = number
                 if (label <= 0) { label = number; }
                 else {
                     features.at(featureCnt) = number;
@@ -204,31 +179,18 @@ void Validator::parseDataset() {
             }
         }
 
-        // for (unsigned int i = 0; i < features.size(); i++) {
-        //     cout << i << ". " << features.at(i) << endl;
-        // }
-
         // push back real set with our newly made Id
         realSet.push_back( shared_ptr<Id>(new Id(label, features)) );
-        // cout << "label: " << realSet.at(realSet.size()-1)->label << ", ";
-        // for (unsigned int i = 0; i < realSet.at(realSet.size()-1)->features.size(); i++) {
-        //     cout << realSet.at(realSet.size()-1)->features.at(i) << ", ";
-        // }
-        // cout << endl;
     }
 
     cout << "min: " << min << ", max: " << max << ", total set size: " << realSet.size() << endl;
 
     // normalize data
-    // for (unsigned int i = 0; i < realSet.size(); i++) {
-    //     // go through id's features, if -1 then skip
-    //     for (unsigned int j = 0; j < realSet.at(i)->features.size(); j++) {
-    //         if (realSet.at(i)->features.at(j) == -1) continue;
-    //         realSet.at(i)->features.at(j) = minmax(realSet.at(i)->features.at(j), min, max);
-    //     }
-    // }
+    for (unsigned int i = 0; i < realSet.size(); i++) {
+        // go through id's features, if -1 then skip
+        for (unsigned int j = 0; j < realSet.at(i)->features.size(); j++) {
+            if (realSet.at(i)->features.at(j) == -1) continue;
+            realSet.at(i)->features.at(j) = minmax(realSet.at(i)->features.at(j), min, max);
+        }
+    }
 }   
-
-double Validator::minmax(const double x, const double min, const double max) {
-    return (x - min) / (max - min);
-}

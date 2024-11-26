@@ -58,7 +58,7 @@ class Classifier {
 
         double distance(shared_ptr<Id> test, shared_ptr<Id> train, vector<unsigned int> featuresToTest);
         void train(vector<shared_ptr<Id>> &realSet);
-        int test(vector<unsigned int> &featuresToTest);
+        void test(vector<unsigned int> &featuresToTest);
 
     public:
         Classifier() {}
@@ -77,7 +77,9 @@ class Validator {
 
         double validate();
         void parseDataset();
-        double minmax(const double x, const double min, const double max);
+        double minmax(const double x, const double min, const double max) {
+            return (x - min) / (max - min);
+        }
 
 
     public:
