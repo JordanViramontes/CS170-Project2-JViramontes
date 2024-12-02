@@ -7,6 +7,7 @@
 
 using std::shared_ptr, std::vector;
 
+// each Id has a label and features
 struct Id {
     int label;
     vector<double> features;
@@ -17,10 +18,12 @@ struct Id {
     }
 };
 
+// represents each "cut" of the overall data set to be tested
 struct KSet {
     vector<shared_ptr<Id>> trainSet;
     shared_ptr<Id> testFeature;
     int predictedLabel = -1;
+    double nearestDistance = -1;
 
     KSet(vector<shared_ptr<Id>> tSet, shared_ptr<Id> tF) {
         trainSet = tSet;
@@ -28,29 +31,23 @@ struct KSet {
     }
 };
 
+// used for linking a distance with label for classifier
 struct Dist {
     double distance = -1;
     double label = -1;
-    int it = -1;
 
-    Dist(double d, double l, int i) {
+    Dist(double d, double l) {
         distance = d;
         label = l;
-        it = i;
     }
 };
 
-// for creating the set
+// for creating set of distances
 inline bool operator <(const Dist &i, const Dist &j) { 
-        double d1 = i.distance;
-        double d2 = j.distance;
-        return (d1 < d2); 
-    }
-
-// bool compareDist(const Dist &a, const Dist &b)
-// {
-//     return a.distance < b.distance;
-// }
+    double d1 = i.distance;
+    double d2 = j.distance;
+    return (d1 < d2); 
+}
 
 class Classifier {
     private:
@@ -81,9 +78,8 @@ class Validator {
             return (x - min) / (max - min);
         }
 
-
     public:
-        Validator();
+        Validator(vector<unsigned int> &features, std::string filePath);
 };
 
 

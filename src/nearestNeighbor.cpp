@@ -7,18 +7,36 @@
 #include <fstream>
 #include <string>
 #include <iomanip>
-#include <list>
 #include <set>
+#include <chrono>
 
 // #include <bits/stdc++.h>
 
 using namespace std;
 
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
+
 // Classifier
 
 Classifier::Classifier(vector<shared_ptr<Id>> &realSet, vector<unsigned int> &features) {
+    // Train
+    cout << "Training dataset...\t";
+    auto t1 = high_resolution_clock::now();
     train(realSet);
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    cout << "Time: " << ms_double.count() << " ms\n";
+
+    // Test
+    cout << "Testing dataset...\t";
+    t1 = high_resolution_clock::now();
     test(features);
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout << "Time: " << ms_double.count() << " ms\n\n";
 }
 
 double Classifier::distance(shared_ptr<Id> test, shared_ptr<Id> train, vector<unsigned int> featuresToTest) {
@@ -27,6 +45,9 @@ double Classifier::distance(shared_ptr<Id> test, shared_ptr<Id> train, vector<un
 
     // get all (x1-x2) for all dimentions
     for (unsigned int i = 0; i < featuresToTest.size(); i++) {
+        // continue if we have an invalid feature
+        if (featuresToTest.at(i) > train->features.size()) continue;
+
         double a = test->features.at(featuresToTest.at(i));
         double b = train->features.at(featuresToTest.at(i));
 
@@ -68,72 +89,91 @@ void Classifier::train(vector<shared_ptr<Id>> &testSet) {
 void Classifier::test(vector<unsigned int> &featuresToTest) {
     // iterate over all ksets
     for (unsigned int k = 0; k < allKSets.size(); k++) {
-        shared_ptr<KSet> temp = allKSets.at(k);
+        shared_ptr<KSet> currentKSet = allKSets.at(k);
         vector<Dist> distances;
 
         // loop over train set to fill the distance vector
-        for (unsigned int i = 0; i < temp->trainSet.size(); i++) {
-            double currentDist = distance(temp->testFeature, temp->trainSet.at(i), featuresToTest);
+        for (unsigned int i = 0; i < currentKSet->trainSet.size(); i++) {
+            double currentDist = distance(currentKSet->testFeature, currentKSet->trainSet.at(i), featuresToTest);
 
             // if distance returns -1, aka all values were -1
             if (currentDist < 0) { continue; }
 
-            distances.push_back(Dist(currentDist, temp->trainSet.at(i)->label, i));
+            distances.push_back(Dist(currentDist, currentKSet->trainSet.at(i)->label));
         }
 
         // set will sort the distance vector into ascending order in O(logn)
         set<Dist> distSet(distances.begin(), distances.end());
 
         // set the Kset's label = nearestneighbor
-        temp->predictedLabel = distSet.begin()->label;
+        currentKSet->predictedLabel = distSet.begin()->label;
+        currentKSet->nearestDistance = distSet.begin()->distance;
     }
 }
 
 // Validator
 
-Validator::Validator() {
-    dataFile = "datasets/small-test-dataset.txt";
+Validator::Validator(vector<unsigned int> &features, string filePath) {
+    dataFile = filePath;
+    
+    // Parse
+    cout << "Parsing \"" << dataFile << "\"...\n\t";
+    auto t1 = high_resolution_clock::now();
     parseDataset();
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    cout << "Time: " << ms_double.count() << " ms\n\n";
 
-    // for (unsigned int i = 0; i < realSet.size(); i++) {
-    //     cout << i << ". " << realSet.at(i)->label << ",\t";
+    // Classifier
+    classifier = Classifier(realSet, features);
 
-    //     for (unsigned int j = 1; j < realSet.at(i)->features.size(); j++) {
-    //         cout << realSet.at(i)->features.at(j) << ", ";
-    //     }
-    //     cout << endl;
-    // }
-
-    vector<unsigned int> featuresToTest = {3, 5, 7};
-    classifier = Classifier(realSet, featuresToTest);
+    // Validate
+    cout << "Validating dataset...\n\t";
+    t1 = high_resolution_clock::now();
     accuracy = validate();
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout << "Time: " << ms_double.count() << " ms\n\n";
+
     cout << "total accuracy: " << accuracy << endl;
 }
 
 double Validator::validate() {
     vector<shared_ptr<KSet>> trainedVec = classifier.getTrainedSet();
+    vector<int> wrongIterations;
     unsigned int total = 0;
     unsigned int correct = 0;
 
     // iterate over the classified vector
     for (unsigned int i = 0; i < trainedVec.size(); i++, total++) {
         // base cases: label/predictedLabel is undefined 
-        if (realSet.at(i)->label == -1) continue;
-        if (trainedVec.at(i)->predictedLabel == -1) continue;
+        if (trainedVec.at(i)->predictedLabel == -1 || realSet.at(i)->label == -1) continue;
 
         // if our predicted label is correct, increase correct counter
         if (trainedVec.at(i)->predictedLabel == realSet.at(i)->label) {
             correct++;
         }
+        else { wrongIterations.push_back(i); }
     }
 
+    cout << "The iterations that predicted a wrong label are (Total incorrect: " 
+         << total-correct << "/" << total << "): \n\t\t{";
+    int cnt = 0;
+    for (unsigned int i = 0; i < wrongIterations.size()-1; i++, cnt++) {
+        cout << wrongIterations.at(i) << ", ";
+        if (cnt >= 20) {
+            cnt = 0;
+            cout << "\n\t\t ";
+        }
+    }
+    cout << wrongIterations.at(wrongIterations.size()-1) << "}\n";
     return (correct * 1.0) / (total * 1.0);
 }
 
 void Validator::parseDataset() {
     ifstream file(dataFile);
     string str; 
-    int totalFeatures = 11;
+    int totalFeatures = 55;
     double min = -1;
     double max = -1;
 
