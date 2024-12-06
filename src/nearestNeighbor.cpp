@@ -22,26 +22,36 @@ using std::chrono::milliseconds;
 // Classifier
 
 Classifier::Classifier(vector<shared_ptr<Id>> &realSet, vector<unsigned int> &features) {
-    // Train
-    cout << "Training dataset...\t";
-    auto t1 = high_resolution_clock::now();
-    train(realSet);
-    auto t2 = high_resolution_clock::now();
-    duration<double, std::milli> ms_double = t2 - t1;
-    cout << "Time: " << ms_double.count() << " ms\n";
+    // // Train
+    // cout << "Training dataset...\t";
+    // auto t1 = high_resolution_clock::now();
+    // train(realSet);
+    // auto t2 = high_resolution_clock::now();
+    // duration<double, std::milli> ms_double = t2 - t1;
+    // cout << "Time: " << ms_double.count() << " ms\n";
 
-    // Test
-    cout << "Testing dataset...\t";
-    t1 = high_resolution_clock::now();
+    // // Test
+    // cout << "Testing dataset...\t";
+    // t1 = high_resolution_clock::now();
+    // test(features);
+    // t2 = high_resolution_clock::now();
+    // ms_double = t2 - t1;
+    // cout << "Time: " << ms_double.count() << " ms\n\n";
+
+    train(realSet);
     test(features);
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout << "Time: " << ms_double.count() << " ms\n\n";
 }
 
 double Classifier::distance(shared_ptr<Id> test, shared_ptr<Id> train, vector<unsigned int> featuresToTest) {
     vector<double> distanceVec;
     double finalDistance = 0;
+
+    // cout << "test: " << test->label << ", train: " << train->label << endl;
+    // cout << "features: " << featuresToTest.size() << endl;;
+    // for (unsigned int i = 0; i < featuresToTest.size(); i++) {
+    //     cout << featuresToTest.at(i) << ", ";
+    // }
+    // cout << endl;
 
     // get all (x1-x2) for all dimentions
     for (unsigned int i = 0; i < featuresToTest.size(); i++) {
@@ -50,6 +60,8 @@ double Classifier::distance(shared_ptr<Id> test, shared_ptr<Id> train, vector<un
 
         double a = test->features.at(featuresToTest.at(i));
         double b = train->features.at(featuresToTest.at(i));
+
+        // cout << "a: " << a << ", b: " << b << endl;
 
         if (a == -1 && b == -1) {
             continue;
@@ -76,6 +88,15 @@ double Classifier::distance(shared_ptr<Id> test, shared_ptr<Id> train, vector<un
 }
 
 void Classifier::train(vector<shared_ptr<Id>> &testSet) {
+    // cout << "testset: " << endl;
+    // for (unsigned int i = 0; i < testSet.size(); i++) {
+    //     cout << "i: " << i << ", " << testSet.at(i)->label << "; {";
+    //     for (unsigned int j = 0; j < testSet.at(i)->features.size(); j++) {
+    //         cout << testSet.at(i)->features.at(j) << ", ";
+    //     }
+    //     cout << "}" << endl;
+    // }
+
     // iterate over set of Ids, goal is to divide full set into a vector of KSets
     for (unsigned int i = 0; i < testSet.size(); i++) {
         // get new set and 
@@ -84,6 +105,11 @@ void Classifier::train(vector<shared_ptr<Id>> &testSet) {
 
         allKSets.push_back(shared_ptr<KSet>(new KSet(newSet, testSet.at(i))));
     }
+
+    // cout << "ksets: " << endl;
+    // for (unsigned int i = 0; i < allKSets.size(); i++) {
+    //     cout << "i: " << i << ", " << allKSets.at(i)->predictedLabel << endl;
+    // }
 }
 
 void Classifier::test(vector<unsigned int> &featuresToTest) {
@@ -108,37 +134,32 @@ void Classifier::test(vector<unsigned int> &featuresToTest) {
         // set the Kset's label = nearestneighbor
         currentKSet->predictedLabel = distSet.begin()->label;
         currentKSet->nearestDistance = distSet.begin()->distance;
+
+        // cout << "i: " << k << ", label: " << currentKSet->predictedLabel << ", with dist: " << currentKSet->nearestDistance << endl;
     }
 }
 
 // Validator
 
-Validator::Validator(vector<unsigned int> &features, string filePath) {
-    dataFile = filePath;
-    
-    // Parse
-    cout << "Parsing \"" << dataFile << "\"...\n\t";
-    auto t1 = high_resolution_clock::now();
-    parseDataset();
-    auto t2 = high_resolution_clock::now();
-    duration<double, std::milli> ms_double = t2 - t1;
-    cout << "Time: " << ms_double.count() << " ms\n\n";
-
+Validator::Validator(vector<unsigned int> &features, vector<shared_ptr<Id>> &realSet) {
     // Classifier
+    // cout << "features: " << features.size() << endl;
     classifier = Classifier(realSet, features);
 
     // Validate
-    cout << "Validating dataset...\n\t";
-    t1 = high_resolution_clock::now();
-    accuracy = validate();
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout << "Time: " << ms_double.count() << " ms\n\n";
+    // cout << "Validating dataset...\n\t";
+    // double t1 = high_resolution_clock::now();
+    // accuracy = validate();
+    // double t2 = high_resolution_clock::now();
+    // double ms_double = t2 - t1;
+    // cout << "Time: " << ms_double.count() << " ms\n\n";
 
-    cout << "total accuracy: " << accuracy << endl;
+    accuracy = validate(realSet);
+
+    // cout << "total accuracy: " << accuracy << endl;
 }
 
-double Validator::validate() {
+double Validator::validate(vector<shared_ptr<Id>> &realSet) {
     vector<shared_ptr<KSet>> trainedVec = classifier.getTrainedSet();
     vector<int> wrongIterations;
     unsigned int total = 0;
@@ -156,81 +177,17 @@ double Validator::validate() {
         else { wrongIterations.push_back(i); }
     }
 
-    cout << "The iterations that predicted a wrong label are (Total incorrect: " 
-         << total-correct << "/" << total << "): \n\t{";
-    int cnt = 0;
-    for (unsigned int i = 0; i < wrongIterations.size()-1; i++, cnt++) {
-        cout << wrongIterations.at(i) << ", ";
-        if (cnt >= 20) {
-            cnt = 0;
-            cout << "\n\t ";
-        }
-    }
-    cout << wrongIterations.at(wrongIterations.size()-1) << "}\n";
+    // cout << "The iterations that predicted a wrong label are (Total incorrect: " 
+    //      << total-correct << "/" << total;
+    // int cnt = 0;
+    // for (unsigned int i = 0; i < wrongIterations.size()-1; i++, cnt++) {
+    //     cout << wrongIterations.at(i) << ", ";
+    //     if (cnt >= 20) {
+    //         cnt = 0;
+    //         cout << "\n\t ";
+    //     }
+    // }
+
+    // cout << wrongIterations.at(wrongIterations.size()-1) << "}\n";
     return (correct * 1.0) / (total * 1.0);
 }
-
-void Validator::parseDataset() {
-    ifstream file(dataFile);
-    string str; 
-    int totalFeatures = 55;
-    double min = -1;
-    double max = -1;
-
-    // parse input
-    while (getline(file, str))
-    {
-        vector<double> features(totalFeatures, -1);
-        string tempStr = "";
-        int label = -1;
-        unsigned int featureCnt = 1;
-
-        // parse row
-        for (unsigned int i = 2; i < str.size(); i++) {
-            if (str.at(i) != ' ') {
-                tempStr += str.at(i);
-            }
-
-            if(str.at(i) == ' ' || i == str.size()-1) {
-                // parse final string
-                double LHS = (double)(tempStr.at(0) - '0');
-                double RHS = atoi( tempStr.substr(2, 7).c_str() ) * (pow(10, -7));
-                int exp = atoi( tempStr.substr(11, 3).c_str() );
-                if (tempStr.at(10) == '-') exp = exp * -1;
-                double number = (LHS + RHS) * (pow(10, exp));
-
-                // check min/max
-                if (min == -1 && label > 0) min = number;
-                if (max == -1) max = number;
-
-                if (number < min && label > 0) min = number;
-                if (number > max) max = number;
-
-                // if label is undefined, set label = number
-                if (label <= 0) { label = number; }
-                else {
-                    features.at(featureCnt) = number;
-                    featureCnt++;
-                }
-
-                // reset tempstr and get ready for next loop
-                tempStr = "";
-                i = i+1;
-            }
-        }
-
-        // push back real set with our newly made Id
-        realSet.push_back( shared_ptr<Id>(new Id(label, features)) );
-    }
-
-    cout << "min: " << min << ", max: " << max << ", total set size: " << realSet.size() << endl;
-
-    // normalize data
-    for (unsigned int i = 0; i < realSet.size(); i++) {
-        // go through id's features, if -1 then skip
-        for (unsigned int j = 0; j < realSet.at(i)->features.size(); j++) {
-            if (realSet.at(i)->features.at(j) == -1) continue;
-            realSet.at(i)->features.at(j) = minmax(realSet.at(i)->features.at(j), min, max);
-        }
-    }
-}   

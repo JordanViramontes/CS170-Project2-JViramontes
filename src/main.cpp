@@ -16,62 +16,48 @@ https://stackoverflow.com/questions/22387586/measuring-execution-time-of-a-funct
 #include <time.h>
 #include <string>
 #include <fstream>
+#include <chrono>
 
 #include "headers/featureSelect.h"
 #include "headers/nearestNeighbor.h"
 
 using namespace std;
 
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
+
 int main(int argc, char *argv[]) {
-    bool cont = true;
-    if (argc != 2) {
-        cout << "Command arguments invalid, Exiting...\n";
-        cont = false;
-        return 0;
-    }
-    string filePath(argv[1]);
-    cout << "using dataset: " << filePath << "\n\n";
+    // if (argc != 2) {
+    //     cout << "Command arguments invalid, Exiting...\n";
+    //     return 0;
+    // }
+    // string filePath(argv[1]);
+    // cout << "using dataset: " << filePath << "\n\n";
     
-    ifstream file(filePath); 
-    if (!file) { 
-        cout << "Provided file does not exist, Exiting...\n";
-        cont = false;
-        return 0;
-    }
+    // ifstream file(filePath); 
+    // if (!file) { 
+    //     cout << "Provided file does not exist, Exiting...\n";
+    //     return 0;
+    // }
 
-    while(cont) {
-        cout << "Type in the features you'd like to test seperated by a 0, or q to quit:\n\t>";
-        string str;
-        getline(cin, str);
+    string data = "data/titanic.txt";
 
-        // Parse input
-        vector<unsigned int> features;
-        string tempStr = "";
-        for (unsigned int i = 0; i < str.size(); i++) {
-            // check for q
-            if (str.at(i) == 'q') {
-                cout << "Exiting...\n";
-                cont = false;
-                break;
-            }
+    auto t1 = high_resolution_clock::now();
+    Graph(0, 1, data);
+    auto t2 = high_resolution_clock::now();
 
-            // build tempstr
-            if (str.at(i) != ' ') {
-                tempStr += str.at(i);
-            }
+    /* Getting number of milliseconds as an integer. */
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
 
-            // if we have a space
-            if(str.at(i) == ' ' || i == str.size()-1) {
-                features.push_back( (unsigned int)(atoi( tempStr.substr(0, tempStr.size()).c_str() )) );
-                tempStr = "";
-            }
-        }
-        
-        // validator
-        if (cont) {
-            cout << "\n\n";
-            Validator v(features, filePath);
-        }
-    }
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    std::cout << "time: " << ms_double.count() << "ms\n";
+
+    
+    
+    
     return 0;
 }

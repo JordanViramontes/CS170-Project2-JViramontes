@@ -12,7 +12,7 @@ struct Id {
     int label;
     vector<double> features;
 
-    Id(int l, vector<double> f) {
+    Id(int l, vector<double> &f) {
         label = l;
         features = f;
     }
@@ -67,19 +67,17 @@ class Classifier {
 
 class Validator {
     private:
-        vector<shared_ptr<Id>> realSet;
         Classifier classifier;
         double accuracy;
-        std::string dataFile;
 
-        double validate();
-        void parseDataset();
+        double validate(vector<shared_ptr<Id>> &realSet);
         double minmax(const double x, const double min, const double max) {
             return (x - min) / (max - min);
         }
 
     public:
-        Validator(vector<unsigned int> &features, std::string filePath);
+        Validator(vector<unsigned int> &features, vector<shared_ptr<Id>> &realSet);
+        double getAccuracy() { return accuracy; }
 };
 
 

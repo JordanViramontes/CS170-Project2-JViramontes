@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#include "nearestNeighbor.h"
+
 using std::vector, std::shared_ptr, std::cout;
 
 class Node {
@@ -17,8 +19,8 @@ class Node {
         double calculateValue();
     public:
         Node();
-        Node(vector<unsigned int>);
-        void prepareChildren(const unsigned int totalF, const bool isForward);
+        Node(vector<unsigned int> &, vector<shared_ptr<Id>> &realSet);
+        void prepareChildren(const unsigned int totalF, const bool isForward, vector<shared_ptr<Id>> &realSet);
 
         //get 
         const unsigned int getFeatureCount() { return features.size(); }
@@ -40,10 +42,18 @@ class Graph {
         unsigned int totalFeatures;
         bool isForward;
         void Search(shared_ptr<Node> n);
+        void Search();
+
+        // dataset
+        vector<shared_ptr<Id>> realSet;
+        void parseDataset(std::string dataset);
+        double minmax(const double x, const double min, const double max) {
+            return (x - min) / (max - min);
+        }
+
     public:
         Graph();
-        Graph(int f, bool isForward);
-        void Search();
+        Graph(int f, bool isForward, std::string dataFile);
 };
 
 #endif
