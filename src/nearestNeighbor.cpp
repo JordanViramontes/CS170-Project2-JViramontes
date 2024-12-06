@@ -157,13 +157,13 @@ double Validator::validate() {
     }
 
     cout << "The iterations that predicted a wrong label are (Total incorrect: " 
-         << total-correct << "/" << total << "): \n\t\t{";
+         << total-correct << "/" << total << "): \n\t{";
     int cnt = 0;
     for (unsigned int i = 0; i < wrongIterations.size()-1; i++, cnt++) {
         cout << wrongIterations.at(i) << ", ";
         if (cnt >= 20) {
             cnt = 0;
-            cout << "\n\t\t ";
+            cout << "\n\t ";
         }
     }
     cout << wrongIterations.at(wrongIterations.size()-1) << "}\n";

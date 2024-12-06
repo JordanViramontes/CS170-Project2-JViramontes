@@ -24,13 +24,19 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     bool cont = true;
+    if (argc != 2) {
+        cout << "Command arguments invalid, Exiting...\n";
+        cont = false;
+        return 0;
+    }
     string filePath(argv[1]);
     cout << "using dataset: " << filePath << "\n\n";
     
     ifstream file(filePath); 
     if (!file) { 
-        cout << "provided file does not exist, Exiting...\n";
+        cout << "Provided file does not exist, Exiting...\n";
         cont = false;
+        return 0;
     }
 
     while(cont) {
