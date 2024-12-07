@@ -160,6 +160,10 @@ void Graph::Search(shared_ptr<Node> n) {
     maxNode->printFeatures();
     cout << "} is the current best, accuracy: " << maxNode->getValue() << "%\n\n";
 
+    if (maxChild->getValue() < maxNode->getValue()) {
+        return;
+    }
+    
     Search(maxChild);
 }
 

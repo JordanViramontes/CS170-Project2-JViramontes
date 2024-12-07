@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <set>
 #include <chrono>
+#include <algorithm>
 
 // #include <bits/stdc++.h>
 
@@ -116,7 +117,8 @@ void Classifier::test(vector<unsigned int> &featuresToTest) {
     // iterate over all ksets
     for (unsigned int k = 0; k < allKSets.size(); k++) {
         shared_ptr<KSet> currentKSet = allKSets.at(k);
-        vector<Dist> distances;
+        double smallestDistance = -1;
+        int label = -1;
 
         // loop over train set to fill the distance vector
         for (unsigned int i = 0; i < currentKSet->trainSet.size(); i++) {
@@ -125,17 +127,16 @@ void Classifier::test(vector<unsigned int> &featuresToTest) {
             // if distance returns -1, aka all values were -1
             if (currentDist < 0) { continue; }
 
-            distances.push_back(Dist(currentDist, currentKSet->trainSet.at(i)->label));
+            // first loop
+            if (label < 0 || (label > 0 && currentDist < smallestDistance)) {
+                label = currentKSet->trainSet.at(i)->label;
+                smallestDistance = currentDist;
+            }            
         }
 
-        // set will sort the distance vector into ascending order in O(logn)
-        set<Dist> distSet(distances.begin(), distances.end());
-
-        // set the Kset's label = nearestneighbor
-        currentKSet->predictedLabel = distSet.begin()->label;
-        currentKSet->nearestDistance = distSet.begin()->distance;
-
-        // cout << "i: " << k << ", label: " << currentKSet->predictedLabel << ", with dist: " << currentKSet->nearestDistance << endl;
+        // set kset elements
+        currentKSet->predictedLabel = label;
+        currentKSet->nearestDistance = smallestDistance;
     }
 }
 

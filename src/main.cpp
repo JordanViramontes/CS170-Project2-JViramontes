@@ -29,20 +29,20 @@ using std::chrono::duration;
 using std::chrono::milliseconds;
 
 int main(int argc, char *argv[]) {
-    // if (argc != 2) {
-    //     cout << "Command arguments invalid, Exiting...\n";
-    //     return 0;
-    // }
-    // string filePath(argv[1]);
-    // cout << "using dataset: " << filePath << "\n\n";
+    if (argc != 2) {
+        cout << "Command arguments invalid, Exiting...\n";
+        return 0;
+    }
+    string filePath(argv[1]);
+    cout << "using dataset: " << filePath << "\n\n";
     
-    // ifstream file(filePath); 
-    // if (!file) { 
-    //     cout << "Provided file does not exist, Exiting...\n";
-    //     return 0;
-    // }
+    ifstream file(filePath); 
+    if (!file) { 
+        cout << "Provided file does not exist, Exiting...\n";
+        return 0;
+    }
 
-    string data = "data/titanic.txt";
+    string data = argv[1];
 
     auto t1 = high_resolution_clock::now();
     Graph(0, 1, data);
