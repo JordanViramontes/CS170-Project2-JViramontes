@@ -164,7 +164,7 @@ void Graph::Search() {
         cout << "Searching with Backward Elimination.\n\n";
         cout << "Using all features: {";
         maxNode->printFeatures();
-        cout << "} and \"random\" evaluation: " << maxNode->getValue() << "%\n\n";
+        cout << "}, accuracy: " << maxNode->getValue() << "%\n\n";
     }
 
     Search(initNode);
