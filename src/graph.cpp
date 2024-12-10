@@ -25,7 +25,6 @@ Node::Node() {
 Node::Node(vector<unsigned int> &v, vector<shared_ptr<Id>> &realSet) {
     parent = nullptr;
     features = v;
-    // sort(v.begin(), v.end()); // sort features for later checks
 
     Validator validator = Validator(v, realSet);
     value = validator.getAccuracy();
@@ -37,40 +36,19 @@ void Node::prepareChildren(const unsigned int totalF, const bool isForward, vect
     if (isForward) {
         // add all possible features to children vector
         unsigned int j = 0;
-        sort(features.begin(), features.end());
-        // cout << "features: ";
-        // for (unsigned int i = 0; i < features.size(); i++) {
-        //     cout << features.at(i) << ", ";
-        // }
-        // cout << endl;
 
         for (unsigned int i = 1; i < totalF; i++) {
+            // if we already have this feature, continue
             if ( (j < features.size()) && (i == features.at(j)) ) {
                 j++;
                 continue;
             }
 
-            childrenFeatures.push_back(i);
-        }
-
-        // cout << "testing children features: " << endl;
-        // for (unsigned int i = 0; i < childrenFeatures.size(); i++) {
-        //     cout << childrenFeatures.at(i) << ", ";
-        // }
-        // cout << endl;
-
-        // for each new child feature, make a new node to get all children
-        for (unsigned int i = 0; i < childrenFeatures.size(); i++) {
-            // create vector with current features + children feature
+            // create new child and insert new feature in correct position
             vector<unsigned int> tempVec = features;
-            tempVec.push_back(childrenFeatures.at(i));
+            if (features.size() == 0) { tempVec.push_back(i); }
+            else { tempVec.insert(std::lower_bound(tempVec.begin(), tempVec.end(), i), i); }
 
-            // for (unsigned int j = 0; j < tempVec.size(); j++) {
-            //     cout << tempVec.at(j) << ", ";
-            // }
-            // cout << endl;
-
-            // create new node and add it to children
             shared_ptr<Node> tempNode = shared_ptr<Node>(new Node(tempVec, realSet));
             children.push_back(tempNode);
         }
@@ -113,7 +91,7 @@ Graph::Graph(int f, bool isF, string dataFile) {
         for (unsigned int i = 0; i < totalFeatures; i++) {
             temp.push_back(i);
         }
-
+        sort(temp.begin(), temp.end());
         initNode = shared_ptr<Node>(new Node(temp, realSet));
     }
 
@@ -124,12 +102,9 @@ Graph::Graph(int f, bool isF, string dataFile) {
 
 void Graph::Search(shared_ptr<Node> n) {
     if (n->getFeatureCount() == totalFeatures-1 && isForward) return; //Forward selection: we are at all features
-    if (n->getFeatureCount() == 1 && !isForward) {
-        
-        return; 
-    }
+    if (n->getFeatureCount() == 1 && !isForward) { return; } // Backward selection
     // if (n->getFeatureCount() >= 1) return; // test base case
-
+    
     n->prepareChildren(totalFeatures, isForward, realSet);
 
     // get the best child possibility
@@ -151,6 +126,13 @@ void Graph::Search(shared_ptr<Node> n) {
     // check to see if new child is better than current max
     if (maxChild->getValue() > maxNode->getValue()) { maxNode = maxChild; }
 
+    // if theres a tie choose the simpler one
+    if (maxChild->getValue() == maxNode->getValue()) {
+        if (maxChild->getFeatureCount() < maxNode->getFeatureCount()) {
+            maxNode = maxChild;
+        }
+    }
+
     // print maxnodes
     cout << "Feature set: {";
     maxChild->printFeatures();
@@ -160,10 +142,10 @@ void Graph::Search(shared_ptr<Node> n) {
     maxNode->printFeatures();
     cout << "} is the current best, accuracy: " << maxNode->getValue() << "%\n\n";
 
-    if (maxChild->getValue() < maxNode->getValue()) {
-        return;
-    }
-    
+    // if our new children give a worse accuracy, aka it will only get worse from here
+    // if (maxChild->getValue() < maxNode->getValue()) { return; }
+
+    // recursive
     Search(maxChild);
 }
 

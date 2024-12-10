@@ -9,6 +9,18 @@ https://stackoverflow.com/questions/5816658/how-to-have-a-set-of-structs-in-c
 
 recording time:
 https://stackoverflow.com/questions/22387586/measuring-execution-time-of-a-function-in-c
+
+RESULTS:
+Group: Jordan Viramontes - jvira007 - Section 22
+- Small Dataset Results:
+    Forward: Feature Subset: {3, 5}, Acc: 0.910891
+    Backward: Feature Subset: {2, 4, 5, 7, 10} Acc: 0.831683
+- Large Dataset Results:
+    Forward: Feature Subset: {1, 27}, Acc: 0.955
+    Backward: Feature Subset: {23,36,12}, Acc: 0.96
+- Titanic Dataset Results:
+    Forward:
+    Backward: Feature Subset: {3, 4, 5}, Acc: 0.969188
 */
 
 #include <iostream>
@@ -41,11 +53,18 @@ int main(int argc, char *argv[]) {
         cout << "Provided file does not exist, Exiting...\n";
         return 0;
     }
-
     string data = argv[1];
 
+    cout << "Do you want to use Forward, or Backward Selection? (Type 1 for forward and 2 for backward)\n\t> ";
+    string str;
+    getline(cin, str);
+
     auto t1 = high_resolution_clock::now();
-    Graph(0, 1, data);
+    if (str == "1") {
+        Graph(0, 1, data);
+    }
+    else Graph(0, 0, data);
+
     auto t2 = high_resolution_clock::now();
 
     /* Getting number of milliseconds as an integer. */
@@ -56,8 +75,5 @@ int main(int argc, char *argv[]) {
 
     std::cout << "time: " << ms_double.count() << "ms\n";
 
-    
-    
-    
     return 0;
 }
