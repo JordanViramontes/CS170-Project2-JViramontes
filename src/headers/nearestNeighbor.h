@@ -87,8 +87,7 @@ class OutputKSet {
 
         void parseDataset(std::string str);
         double minmax(const double x, const double min, const double max) {
-            // return (x - min) / (max - min);
-            return x;
+            return (x - min) / (max - min);
         }
 
     public:

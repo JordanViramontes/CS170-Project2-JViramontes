@@ -127,9 +127,9 @@ double Validator::validate(vector<shared_ptr<Id>> &realSet) {
         else { wrongIterations.push_back(i); }
 
         // create output
-        string str = to_string(isTrue) + ", ";
+        string str = to_string(isTrue) + ",";
         for (unsigned int j = 0; j < features.size(); j++) {
-            str += to_string(realSet.at(i)->features.at(features.at(j))) + " ";
+            str += to_string(realSet.at(i)->features.at(features.at(j))) + ",";
         }
         str += "\n";
         
@@ -148,8 +148,8 @@ double Validator::validate(vector<shared_ptr<Id>> &realSet) {
 // OUPUTKSET
 
 OutputKSet::OutputKSet() {
-    vector<unsigned int> features = {2, 7}; // good
-    // vector<unsigned int> features = {1, 4}; // bad
+    // vector<unsigned int> features = {3, 5}; // good
+    vector<unsigned int> features = {2, 7}; // bad
     string str = "data/smallData.txt";
     parseDataset(str);
 
@@ -233,11 +233,11 @@ void OutputKSet::parseDataset(std::string dataFile) {
     cout << "min: " << min << ", max: " << max << ", total set size: " << realSet.size() << endl;
 
     // // normalize data
-    // for (unsigned int i = 0; i < realSet.size(); i++) {
-    //     // go through id's features, if -1 then skip
-    //     for (unsigned int j = 0; j < realSet.at(i)->features.size(); j++) {
-    //         if (realSet.at(i)->features.at(j) == -1) continue;
-    //         realSet.at(i)->features.at(j) = minmax(realSet.at(i)->features.at(j), min, max);
-    //     }
-    // }
+    for (unsigned int i = 0; i < realSet.size(); i++) {
+        // go through id's features, if -1 then skip
+        for (unsigned int j = 0; j < realSet.at(i)->features.size(); j++) {
+            if (realSet.at(i)->features.at(j) == -1) continue;
+            realSet.at(i)->features.at(j) = minmax(realSet.at(i)->features.at(j), min, max);
+        }
+    }
 }
