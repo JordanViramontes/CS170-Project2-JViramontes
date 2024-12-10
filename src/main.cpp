@@ -45,11 +45,14 @@ int main(int argc, char *argv[]) {
     //      use {2, 7} or bad features
 
     //debug
-    string strDebug = argv[2];
-    if (strDebug == "-1") {
-        OutputKSet k;
-        return 0;
+    if (argc == 3) {
+        string strDebug = argv[2];
+        if (strDebug == "-1") {
+            OutputKSet k;
+            return 0;
+        }
     }
+    
 
     // normal
     if (argc != 2) {
