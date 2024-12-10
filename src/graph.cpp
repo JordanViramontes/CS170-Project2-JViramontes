@@ -20,6 +20,8 @@ using namespace std;
 Node::Node() {
     parent = nullptr;
     value = -1;
+
+    features = {};
 }
 
 Node::Node(vector<unsigned int> &v, vector<shared_ptr<Id>> &realSet) {
@@ -48,10 +50,15 @@ void Node::prepareChildren(const unsigned int totalF, const bool isForward, vect
             vector<unsigned int> tempVec = features;
             if (features.size() == 0) { tempVec.push_back(i); }
             else { tempVec.insert(std::lower_bound(tempVec.begin(), tempVec.end(), i), i); }
-
             shared_ptr<Node> tempNode = shared_ptr<Node>(new Node(tempVec, realSet));
             children.push_back(tempNode);
         }
+
+        // for (unsigned int i = 0; i < children.size(); i++) {
+        //     children.at(i)->printFeatures();
+        //     cout << endl;
+        // }
+
     }
     else {
         //iterate over features and remove a features one at a time
@@ -103,7 +110,7 @@ Graph::Graph(int f, bool isF, string dataFile) {
 void Graph::Search(shared_ptr<Node> n) {
     if (n->getFeatureCount() == totalFeatures-1 && isForward) return; //Forward selection: we are at all features
     if (n->getFeatureCount() == 1 && !isForward) { return; } // Backward selection
-    // if (n->getFeatureCount() >= 1) return; // test base case
+    // if (n->getFeatureCount() >= 2) return; // test base case
     
     n->prepareChildren(totalFeatures, isForward, realSet);
 
@@ -112,6 +119,9 @@ void Graph::Search(shared_ptr<Node> n) {
     for (unsigned int i = 0; i < n->getChildren().size(); i++) {
         // add child to total vector
         allNodes.push_back(n->getChildren().at(i));
+
+        // n->getChildren().at(i)->printFeatures();
+        // cout << "acc: " << n->getChildren().at(i)->getValue() << endl;
 
         // base case
         if (maxChild == nullptr) {
@@ -141,9 +151,6 @@ void Graph::Search(shared_ptr<Node> n) {
     cout << "Feature set: {";
     maxNode->printFeatures();
     cout << "} is the current best, accuracy: " << maxNode->getValue() << "%\n\n";
-
-    // if our new children give a worse accuracy, aka it will only get worse from here
-    // if (maxChild->getValue() < maxNode->getValue()) { return; }
 
     // recursive
     Search(maxChild);
@@ -210,14 +217,14 @@ void Graph::parseDataset(std::string dataFile) {
                 double number = (LHS + RHS) * (pow(10, exp));
 
                 // check min/max
-                if (min == -1 && label > 0) min = number;
+                if (min == -1 && label >= 0) min = number;
                 if (max == -1) max = number;
 
-                if (number < min && label > 0) min = number;
+                if (number < min && label >= 0) min = number;
                 if (number > max) max = number;
 
                 // if label is undefined, set label = number
-                if (label <= 0) { label = number; }
+                if (label < 0) { label = number; }
                 else {
                     features.at(featureCnt) = number;
                     featureCnt++;
@@ -230,12 +237,16 @@ void Graph::parseDataset(std::string dataFile) {
         }
 
         // push back real set with our newly made Id
+        // for (unsigned int i = 0; i < features.size(); i++) {
+        //     cout << features.at(i) << ", ";
+        // }
+        // cout << ", L: " << label << endl;
         realSet.push_back( shared_ptr<Id>(new Id(label, features)) );
     } while (getline(file, str)  && !str.empty() );
 
     cout << "min: " << min << ", max: " << max << ", total set size: " << realSet.size() << endl;
 
-    // normalize data
+    // // normalize data
     for (unsigned int i = 0; i < realSet.size(); i++) {
         // go through id's features, if -1 then skip
         for (unsigned int j = 0; j < realSet.at(i)->features.size(); j++) {

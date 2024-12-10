@@ -41,6 +41,17 @@ using std::chrono::duration;
 using std::chrono::milliseconds;
 
 int main(int argc, char *argv[]) {
+    //note: use {3, 5} for good features and {3, 5} for good
+    //      use {2, 7} or bad features
+
+    //debug
+    string strDebug = argv[2];
+    if (strDebug == "-1") {
+        OutputKSet k;
+        return 0;
+    }
+
+    // normal
     if (argc != 2) {
         cout << "Command arguments invalid, Exiting...\n";
         return 0;
@@ -58,6 +69,8 @@ int main(int argc, char *argv[]) {
     cout << "Do you want to use Forward, or Backward Selection? (Type 1 for forward and 2 for backward)\n\t> ";
     string str;
     getline(cin, str);
+
+    // string str = "1";
 
     auto t1 = high_resolution_clock::now();
     if (str == "1") {

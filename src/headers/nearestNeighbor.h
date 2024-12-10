@@ -67,6 +67,7 @@ class Classifier {
 
 class Validator {
     private:
+        vector<unsigned int> features;
         Classifier classifier;
         double accuracy;
 
@@ -78,6 +79,20 @@ class Validator {
     public:
         Validator(vector<unsigned int> &features, vector<shared_ptr<Id>> &realSet);
         double getAccuracy() { return accuracy; }
+};
+
+class OutputKSet {
+    private:
+        vector<shared_ptr<Id>> realSet;
+
+        void parseDataset(std::string str);
+        double minmax(const double x, const double min, const double max) {
+            // return (x - min) / (max - min);
+            return x;
+        }
+
+    public:
+        OutputKSet();
 };
 
 

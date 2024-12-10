@@ -20,6 +20,8 @@ using namespace std;
 Classifier::Classifier(vector<shared_ptr<Id>> &realSet, vector<unsigned int> &features) {
     train(realSet);
     test(features);
+
+    
 }
 
 double Classifier::distance(shared_ptr<Id> test, shared_ptr<Id> train, vector<unsigned int> featuresToTest) {
@@ -89,10 +91,11 @@ void Classifier::test(vector<unsigned int> &featuresToTest) {
 
 // Validator
 
-Validator::Validator(vector<unsigned int> &features, vector<shared_ptr<Id>> &realSet) {
+Validator::Validator(vector<unsigned int> &f, vector<shared_ptr<Id>> &realSet) {
     // Classifier
-    classifier = Classifier(realSet, features);
+    classifier = Classifier(realSet, f);
 
+    features = f;
     accuracy = validate(realSet);
 }
 
@@ -102,18 +105,139 @@ double Validator::validate(vector<shared_ptr<Id>> &realSet) {
     unsigned int total = 0;
     unsigned int correct = 0;
 
-    // iterate over the classified vector
-    for (unsigned int i = 0; i < trainedVec.size(); i++, total++) {
+    string outputName = "output/tempoutput.txt";
+    ofstream resetFile(outputName);
+        if (resetFile.is_open()) {
+            resetFile << "";
+            resetFile.close();
+        }
+
+    // iterate over the classified vector trainedVec.size()
+    for (unsigned int i = 0; i < trainedVec.size(); i++, total++) {        
+        bool isTrue = false;
+        // string outputStr = 
         // base cases: label/predictedLabel is undefined 
         if (trainedVec.at(i)->predictedLabel == -1 || realSet.at(i)->label == -1) continue;
 
         // if our predicted label is correct, increase correct counter
         if (trainedVec.at(i)->predictedLabel == realSet.at(i)->label) {
+            isTrue = true;
             correct++;
         }
         else { wrongIterations.push_back(i); }
+
+        // create output
+        string str = to_string(isTrue) + ", ";
+        for (unsigned int j = 0; j < features.size(); j++) {
+            str += to_string(realSet.at(i)->features.at(features.at(j))) + " ";
+        }
+        str += "\n";
+        
+        // write to file
+        ofstream file(outputName, std::ios_base::app);
+        if (file.is_open()) {
+            file << str;
+            file.close();
+        }
     }
 
     // cout << wrongIterations.at(wrongIterations.size()-1) << "}\n";
     return (correct * 1.0) / (total * 1.0);
+}
+
+// OUPUTKSET
+
+OutputKSet::OutputKSet() {
+    vector<unsigned int> features = {2, 7}; // good
+    // vector<unsigned int> features = {1, 4}; // bad
+    string str = "data/smallData.txt";
+    parseDataset(str);
+
+
+    Validator v = Validator(features, realSet);
+
+    double accuracy = v.getAccuracy();
+    cout << "Accuracy: " << accuracy << endl;
+}
+
+void OutputKSet::parseDataset(std::string dataFile) {
+    ifstream file(dataFile);
+    string str; 
+    int totalFeatures = 0;
+    double min = -1;
+    double max = -1;
+
+    // parse through first string to get the total feature count
+    if (getline(file, str) && !str.empty()) {
+        for (unsigned int i = 2; i < str.size(); i++) {
+            if(str.at(i) == ' ' || i == str.size()-1) {
+                totalFeatures++;
+
+                // get ready for next loop
+                i = i+1;
+            }
+        }
+    }
+    else { return; }
+
+    // parse input for ID values
+    do
+    {
+        vector<double> features(totalFeatures, -1);
+        string tempStr = "";
+        int label = -1;
+        unsigned int featureCnt = 1;
+
+        // parse row
+        for (unsigned int i = 2; i < str.size(); i++) {
+            if (str.at(i) != ' ') {
+                tempStr += str.at(i);
+            }
+
+            if(str.at(i) == ' ' || i == str.size()-1) {
+                // parse final string
+                double LHS = (double)(tempStr.at(0) - '0');
+                double RHS = atoi( tempStr.substr(2, 7).c_str() ) * (pow(10, -7));
+                int exp = atoi( tempStr.substr(11, 3).c_str() );
+                if (tempStr.at(10) == '-') exp = exp * -1;
+                double number = (LHS + RHS) * (pow(10, exp));
+
+                // check min/max
+                if (min == -1 && label >= 0) min = number;
+                if (max == -1) max = number;
+
+                if (number < min && label >= 0) min = number;
+                if (number > max) max = number;
+
+                // if label is undefined, set label = number
+                if (label < 0) { label = number; }
+                else {
+                    features.at(featureCnt) = number;
+                    featureCnt++;
+                }
+
+                // reset tempstr and get ready for next loop
+                tempStr = "";
+                i = i+1;
+            }
+        }
+
+        // push back real set with our newly made Id
+        // for (unsigned int i = 0; i < features.size(); i++) {
+        //     cout << features.at(i) << ", ";
+        // }
+        // cout << ", L: " << label << endl;
+        realSet.push_back( shared_ptr<Id>(new Id(label, features)) );
+    } while (getline(file, str)  && !str.empty() );
+
+    cout << "min: " << min << ", max: " << max << ", total set size: " << realSet.size() << endl;
+
+    // // normalize data
+    // for (unsigned int i = 0; i < realSet.size(); i++) {
+    //     // go through id's features, if -1 then skip
+    //     for (unsigned int j = 0; j < realSet.at(i)->features.size(); j++) {
+    //         if (realSet.at(i)->features.at(j) == -1) continue;
+    //         realSet.at(i)->features.at(j) = minmax(realSet.at(i)->features.at(j), min, max);
+    //     }
+    // }
 }
