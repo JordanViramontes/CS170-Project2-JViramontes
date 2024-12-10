@@ -17,10 +17,10 @@ Group: Jordan Viramontes - jvira007 - Section 22
     Backward: Feature Subset: {2, 4, 5, 7, 10} Acc: 0.831683
 - Large Dataset Results:
     Forward: Feature Subset: {1, 27}, Acc: 0.955
-    Backward: Feature Subset: {23,36,12}, Acc: 0.96
+    Backward: Feature Subset: {1, 27}, Acc: 0.955
 - Titanic Dataset Results:
-    Forward:
-    Backward: Feature Subset: {3, 4, 5}, Acc: 0.969188
+    Forward: {2}, Acc: 0.593838
+    Backward: Feature Subset: {6}, Acc: 0.593838
 */
 
 #include <iostream>
