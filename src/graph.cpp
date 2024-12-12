@@ -201,18 +201,29 @@ void Graph::parseDataset(std::string dataFile) {
         string tempStr = "";
         int label = -1;
         unsigned int featureCnt = 1;
+        // cout << "str: " << str << endl;
+        // cout << "str: " << str.size() << endl;
+
+        // get starting point
+        unsigned int startingPoint = 0;
+        for (unsigned int i = 0; i < str.size(); i++) {
+            if (str.at(i) != ' ') break;
+            startingPoint++;
+        }
+        // cout << startingPoint << endl;
 
         // parse row
-        for (unsigned int i = 2; i < str.size(); i++) {
+        for (unsigned int i = startingPoint; i < str.size(); i++) {
             if (str.at(i) != ' ') {
                 tempStr += str.at(i);
             }
 
             if(str.at(i) == ' ' || i == str.size()-1) {
+                // cout << "test: " << tempStr << endl;
                 // parse final string
                 double LHS = (double)(tempStr.at(0) - '0');
                 double RHS = atoi( tempStr.substr(2, 7).c_str() ) * (pow(10, -7));
-                int exp = atoi( tempStr.substr(11, 3).c_str() );
+                int exp = atoi( tempStr.substr(11, 2).c_str() );
                 if (tempStr.at(10) == '-') exp = exp * -1;
                 double number = (LHS + RHS) * (pow(10, exp));
 
@@ -223,6 +234,8 @@ void Graph::parseDataset(std::string dataFile) {
                 if (number < min && label >= 0) min = number;
                 if (number > max) max = number;
 
+                // cout << "NUMBER: " << number << endl;
+
                 // if label is undefined, set label = number
                 if (label < 0) { label = number; }
                 else {
@@ -232,7 +245,7 @@ void Graph::parseDataset(std::string dataFile) {
 
                 // reset tempstr and get ready for next loop
                 tempStr = "";
-                i = i+1;
+                i = i+startingPoint-1;
             }
         }
 
