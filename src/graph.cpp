@@ -223,7 +223,7 @@ void Graph::parseDataset(std::string dataFile) {
                 // parse final string
                 double LHS = (double)(tempStr.at(0) - '0');
                 double RHS = atoi( tempStr.substr(2, 7).c_str() ) * (pow(10, -7));
-                int exp = atoi( tempStr.substr(11, 2).c_str() );
+                int exp = atoi( tempStr.substr(11, 3).c_str() );
                 if (tempStr.at(10) == '-') exp = exp * -1;
                 double number = (LHS + RHS) * (pow(10, exp));
 
